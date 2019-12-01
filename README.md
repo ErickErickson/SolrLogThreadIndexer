@@ -7,13 +7,13 @@ This is a WIP, I'd _really_ like people to give it a spin. And contact Erick Eri
 
 1. start up a Solr instance with the attached configs. It really doesn't matter whether it's SolrCloud or stand-alone.
 
-2. Edit the sample "indexer.cfg" file. The first 70 lines or so are what needs to be edited most often. *Don't be alarmed!!*, it's only 6 acutal entries and a lot of comments.
+2. Edit the sample "indexer.cfg" file. The first 70 lines or so are what needs to be edited most often. *Don't be alarmed!!*, it's only 6 actual entries and a lot of comments.
 
-3. Execute "groovy SolrSuppportIndexer path_to_config_file_from_step_2"
+3. Execute "groovy SolrSuppportIndexer path_to_config_file_from_step_2". You should see progress reports almost immediately.
 
-4. Point your browser to your_solr_instance:port/solr/your_collection_or_core_name/browse
+4. Point your browser to your_solr_instance:port/solr/your_collection_or_core_name/browse after step <3> is complete.
 
-5. Kick the tires as much as you want. There is a sample thread dump and sample Solr log file. I recommend you use those first in order to see how it's _supposed_ to work.
+5. Kick the tires as much as you want. I was going to include sample log and thread dumps, but there's too much chance of there being proprietary info in them, even just the collection names. So be brave. Try it on one of your favorite log files or thread dumps. I'll be happy to help tweak the cfg file for your particular issue.
 
 6. Seriously think about how we can improve it. In particular, the UI is the browse handler, which is _probably_ going away soon from Solr. Hey! There's this nifty Fusion product that could provide a _much_ better front-end etc. Volunteers?
 
@@ -34,7 +34,7 @@ My testing was done with Solr 8.2. There are no a-priori reasons it wouldn't wor
 ## Weaknesses
 
 * The UI is messy. There are too many facets. Facets are hard-coded, to change them you need to change the Velocity templates. Text bleeds over into other text (hover over the facets to see the whole thing). Etc. Try to overlook that part and see if the funcitonality is useful. If so, we can move it all to a better UI.
-
+  * Some of the documents are sparse. Look at some of the facets to see documents with more attributes.
 * The configuration file may take tweaking, and you have to deal with Java regexes in order to do so. There are extensive comments in the configuration file, feel free to add more. I decided to go with regexes since there are too many possibilities. I hope we can accumulate enough that the need to add more will taper off. Here are two examples:
   * One set of log files had a timestamp with a 'T' between the date and time. Another one had a space. Siiigggh. So I put in two patterns. It's a balance between multiple entries and complex entries, there's no particuarly correct answer.
   * When we get zip files, each line can start with the name of the log file, e.g. "solr.log.1:2019-11-10T00:12:34"
