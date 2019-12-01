@@ -7,13 +7,13 @@ This is a WIP, I'd _really_ like people to give it a spin. And contact Erick Eri
 
 1. start up a Solr instance with the attached configs. It really doesn't matter whether it's SolrCloud or stand-alone.
 
-2. Edit the sample "indexer.cfg" file. The first 70 lines or so are what needs to be edited most often. *Don't be alarmed!!*, it's only 6 acutal entries and a lot of comments.
+2. Edit the sample "indexer.cfg" file. The first 70 lines or so are what needs to be edited most often. *Don't be alarmed!!*, it's only 6 actual entries and a lot of comments.
 
-3. Execute "groovy SolrSuppportIndexer path_to_config_file_from_step_2"
+3. Execute "groovy SolrSuppportIndexer path_to_config_file_from_step_2". You should see progress reports almost immediately.
 
-4. Point your browser to your_solr_instance:port/solr/your_collection_or_core_name/browse
+4. Point your browser to your_solr_instance:port/solr/your_collection_or_core_name/browse after step <3> is complete.
 
-5. Kick the tires as much as you want. There is a sample thread dump and sample Solr log file. I recommend you use those first in order to see how it's _supposed_ to work, then turn it loose on your favorite problem stack trace or log file.
+5. Kick the tires as much as you want. I was going to include sample log and thread dumps, but there's too much chance of there being proprietary info in them, even just the collection names. So be brave. Try it on one of your favorite log files or thread dumps. I'll be happy to help tweak the cfg file for your particular issue.
 
 6. Seriously think about how we can improve it. In particular, the UI is the browse handler, which is _probably_ going away soon from Solr. Hey! There's this nifty Fusion product that could provide a _much_ better front-end etc. Volunteers?
 
