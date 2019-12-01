@@ -1,0 +1,16 @@
+<div>Collection: #field('collection_s')</div>
+<div>Id:      #field('id')</div>
+<div>File:    #field('file_s')</div>
+<div>State:   #field('state_s')</div>
+<div>Core:    #field('core_s')</div>
+<div>Node:    #field('node_s')</div>
+<div>Bucket:  #field('bucket_s')</div>
+<div>Handler: #field('handler_s')</div>
+<div>Start:   #field('start_i')</div>
+<div>Rows:    #field('rows_i')</div>
+<div>Batch:   #field('batch_s')</div>
+<div>Tags:    #field('tags_ss')</div>
+<div>QTime:   #field('qtime_i')</div>
+<div>Trace:   #field('trace_txt')</div>
+
+#parse('debug.vm')
