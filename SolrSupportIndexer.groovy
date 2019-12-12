@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 package eoe.code
 
 // FUTURE EHNANCEMENT! It'd be nifty to create a separate thread per file to be indexed up to, say, a maximum
@@ -191,7 +209,7 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
   SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   // Get the date. Since the date formats are so strange let's do this manually.
   String getTime(String line) {
-    for (Pattern pat : cfg.bolPat) {
+    for (Pattern pat : cfg.timePat) {
       Matcher m = pat.matcher(line)
       if (m.find()) {
         // Ugly. Really ugly. But what the heck..
@@ -257,7 +275,7 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
   }
 
   void addException(List<String> lines) throws IOException {
-    SolrDoc doc = new SolrDoc(getBatch(), curFile.toString(), docCount)
+    SolrDoc doc = new SolrDoc(getBatch(), curFile.getName(), docCount)
     doc.time_dt = getTime(lines.get(0))
     doc.tags_ss.add("EXCEPTION")
     doc.trace_txt.addAll(decodeMe(lines))
@@ -311,7 +329,7 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
   // There will only be a single line in the document
 
   void addLogRecord(List<String> lines) {
-    SolrDoc doc = new SolrDoc(getBatch(), curFile.toString(), docCount)
+    SolrDoc doc = new SolrDoc(getBatch(), curFile.getName(), docCount)
     doc.time_dt = getTime(lines.get(0))
     int pos = lines.get(0).indexOf("params=")
     if (pos < 0) {
@@ -406,7 +424,7 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
     }
     String line
     while ((line = br.readLine()) != null) {
-      for (Pattern pat : cfg.bolPat) {
+      for (Pattern pat : cfg.timePat) {
         Matcher m = pat.matcher(line)
         if (m.find()) {
           lastLine = line
@@ -493,7 +511,7 @@ class SolrThreadIndexer extends SolrSupportIndexerBase {
   }
 
   void outputThread(String state, List<String> thread) throws IOException {
-    SolrDoc doc = new SolrDoc(getBatch(), curFile.toString(), docCount);
+    SolrDoc doc = new SolrDoc(getBatch(), curFile.getName(), docCount);
     doc.batch_s = getBatch();
     // Add any regex patterns specified in addition to any wait objects
     doc.trace_txt.addAll(thread)
@@ -550,7 +568,7 @@ class SolrDoc {
  */
 class Config {
   private String batchTag
-  private List<Pattern> bolPat = new ArrayList<>()
+  private List<Pattern> timePat = new ArrayList<>()
   private List<Pattern> exceptionPat = new ArrayList<>()
   private Pattern handlerPat
   private String root
@@ -605,11 +623,11 @@ class Config {
             if (lev.trim().length() == 0) {
               continue
             }
-            levels.add(" " + lev.trim() + " ")
+            levels.add(lev.trim())
           }
           break
-        case "bolpat":
-          bolPat.add(Pattern.compile(parts[1]))
+        case "timepat":
+          timePat.add(Pattern.compile(parts[1]))
           break
         case "exceptionpat":
           exceptionPat.add(Pattern.compile(parts[1]))
@@ -710,8 +728,8 @@ class Config {
       err.println("    ExceptionPat: " + pat.toString())
     }
     err.println("    statePat: " + statePat.toString())
-    for (Pattern pat : bolPat) {
-      err.println("    bolPat: " + pat.toString())
+    for (Pattern pat : timePat) {
+      err.println("    timePat: " + pat.toString())
     }
     err.println("    handlerPat: " + handlerPat.toString())
     for (Pattern pat : threadStop) {
