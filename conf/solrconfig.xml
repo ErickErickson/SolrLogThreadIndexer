@@ -881,7 +881,15 @@
        <str name="facet.query">rows_i:[300 TO 400}</str>
        <str name="facet.query">rows_i:[400 TO 500}</str>
        <str name="facet.query">rows_i:[500 TO 1000}</str>
-       <str name="facet.query">rows_i:[1000 TO 10000}</str>
+       <str name="facet.query">rows_i:[1000 TO 2000}</str>
+       <str name="facet.query">rows_i:[2000 TO 3000}</str>
+       <str name="facet.query">rows_i:[3000 TO 4000}</str>
+       <str name="facet.query">rows_i:[4000 TO 5000}</str>
+       <str name="facet.query">rows_i:[5000 TO 6000}</str>
+       <str name="facet.query">rows_i:[6000 TO 7000}</str>
+       <str name="facet.query">rows_i:[7000 TO 8000}</str>
+       <str name="facet.query">rows_i:[8000 TO 9000}</str>
+       <str name="facet.query">rows_i:[9000 TO 10000}</str>
        <str name="facet.query">rows_i:[10000 TO *]</str>
 
 

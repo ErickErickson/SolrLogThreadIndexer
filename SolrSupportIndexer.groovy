@@ -341,11 +341,21 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
         if (part.trim().length() > 0) {
           doc.trace_txt.add(decodeMe(part))
         }
+        int qPos = part.indexOf("q=")
+        if (qPos >= 0) {
+          String qPart = decodeMe(part.substring(qPos + 2))
+          int ampPos = qPart.indexOf('&')
+          if (ampPos > 0) {
+            doc.query_s = qPart.substring(0, ampPos)
+          } else {
+            doc.query_s = qPart
+          }
+        }
       }
     }
     for (String level : cfg.levels) {
       if (lines.get(0).contains(level)) {
-        doc.tags_ss.add(level.trim().replaceAll("\"", "'"))
+        doc.tags_ss.add(decodeMe(level.trim().replaceAll("\"", "'")))
       }
     }
     Matcher m = cfg.qtimePat.matcher(lines.get(0))
@@ -556,6 +566,7 @@ class SolrDoc {
   String collection_s
   String file_s
   String batch_s
+  String query_s
 
   SolrDoc(String batch, String file, int docCount) {
     this.id = batch + "_" + docCount

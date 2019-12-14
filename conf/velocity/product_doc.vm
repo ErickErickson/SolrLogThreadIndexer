@@ -1,9 +1,10 @@
 <div>Collection: #field('collection_s')</div>
 <div>id:        #field('id')</div>
-<div>bacth_s:   #field('batch_s')</div>
+<div>batch_s:   #field('batch_s')</div>
 <div>file_s:    #field('file_s')</div>
 <div>state_s:   #field('state_s')</div>
 <div>core_s:    #field('core_s')</div>
+<div>query_s:   #field('query_s')</div>
 <div>node_s:    #field('node_s')</div>
 <div>bucket_s:  #field('bucket_s')</div>
 <div>handler_s: #field('handler_s')</div>
@@ -11,6 +12,7 @@
 <div>start_i:   #field('start_i')</div>
 <div>rows_i:    #field('rows_i')</div>
 <div>tags_ss:   #field('tags_ss')</div>
+<div>time_dt:   #field('time_dt')</div>
 <div>trace_txt: #field('trace_txt')</div>
 
 #parse('debug.vm')
