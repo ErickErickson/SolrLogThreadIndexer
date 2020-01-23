@@ -273,7 +273,7 @@
 
     <fieldType name="text_trace" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
-        <tokenizer class="solr.PatternTokenizerFactory" pattern="[^a-zA-Z0-9]"/>
+        <tokenizer class="solr.PatternTokenizerFactory" pattern="[^a-zA-Z0-9_-]"/>
         <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
     </fieldType>
