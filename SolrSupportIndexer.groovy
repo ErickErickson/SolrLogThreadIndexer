@@ -205,73 +205,35 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
     }
   }
 
-  Pattern digPat = Pattern.compile(".*?(\\d{1,4})")
   SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   // Get the date. Since the date formats are so strange let's do this manually.
   String getTime(String line) {
     for (Pattern pat : cfg.timePat) {
       Matcher m = pat.matcher(line)
       if (m.find()) {
-        // Ugly. Really ugly. But what the heck..
-        String toParse = m.group(1)
-        m = digPat.matcher(toParse);
-        if (m.find() == false) {
-          err.println("Could not parse date: " + toParse)
-          return;
-        }
         int year = Integer.parseInt(m.group(1))
-        toParse = toParse.substring(m.end(1))
-        m = digPat.matcher(toParse)
-        if (m.find() == false) {
-          err.println("Could not parse date: " + toParse)
-          return;
-        }
-        int month = Integer.parseInt(m.group(1))
-        toParse = toParse.substring(m.end(1))
-
-        m = digPat.matcher(toParse)
-        if (m.find() == false) {
-          err.println("Could not parse date: " + toParse)
-          return;
-        }
-        int day = Integer.parseInt(m.group(1))
-        toParse = toParse.substring(m.end(1))
-
-        m = digPat.matcher(toParse)
-        if (m.find() == false) {
-          err.println("Could not parse date: " + toParse)
-          return;
-        }
-        int hour = Integer.parseInt(m.group(1))
-        toParse = toParse.substring(m.end(1))
-
-        m = digPat.matcher(toParse)
-        if (m.find() == false) {
-          err.println("Could not parse date: " + toParse)
-          return;
-        }
-        int minute = Integer.parseInt(m.group(1))
-        toParse = toParse.substring(m.end(1))
-
-        m = digPat.matcher(toParse)
-        if (m.find() == false) {
-          err.println("Could not parse date: " + toParse)
-          return;
-        }
-        int second = Integer.parseInt(m.group(1))
-        toParse = toParse.substring(m.end(1))
-
-        m = digPat.matcher(toParse)
-        int ms = 0
-        if (m.find()) {
-          ms = Integer.parseInt(m.group(1))
-        }
+        int month = Integer.parseInt(m.group(2)) - 1
+        int day = Integer.parseInt(m.group(3))
+        int hour = Integer.parseInt(m.group(4))
+        int minute = Integer.parseInt(m.group(5))
+        int second = Integer.parseInt(m.group(6))
+        int ms = (m.groupCount() == 7) ? Integer.parseInt(m.group(7)) : 0
         Calendar cal = new GregorianCalendar(year, month, day, hour, minute, second, ms);
 
         return sdf.format(cal.getTime())
       }
     }
     return null
+  }
+
+  static final int MAX_STR_LEN = 1024
+
+  static String checkString(String toCheck) {
+    if (toCheck.length() > MAX_STR_LEN) {
+      int debugMe = 100
+      return (toCheck.take(MAX_STR_LEN))
+    }
+    return toCheck
   }
 
   void addException(List<String> lines) throws IOException {
@@ -297,28 +259,28 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
       for (Pattern pat : cfg.threadStop) {
         m = pat.matcher(line)
         if (doc.bucket_s == null && m.find()) { // bucket at this line
-          doc.bucket_s = line.trim()
+          doc.bucket_s = checkString(line.trim())
           break
         }
       }
       for (Pattern pat : cfg.tagsToFind) {
         m = pat.matcher(line)
         if (m.find()) {
-          doc.tags_ss.add(line.replaceAll("\"", "'"))
+          doc.tags_ss.add(checkString(line.replaceAll("\"", "'")))
         }
       }
     }
     for (Pattern pat : cfg.collectionPat) {
       m = pat.matcher(lines.get(0))
       if (m.find()) {
-        doc.collection_s = m.group(1)
+        doc.collection_s = checkString(m.group(1))
         break;
       }
     }
     for (Pattern pat : cfg.corePat) {
       m = pat.matcher(lines.get(0))
       if (m.find()) {
-        doc.core_s = m.group(1)
+        doc.core_s = checkString(m.group(1))
         break;
       }
     }
@@ -331,31 +293,47 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
   void addLogRecord(List<String> lines) {
     SolrDoc doc = new SolrDoc(getBatch(), curFile.getName(), docCount)
     doc.time_dt = getTime(lines.get(0))
-    int pos = lines.get(0).indexOf("params=")
-    if (pos < 0) {
-      doc.trace_txt.addAll(decodeMe(lines))
-    } else {
-      doc.trace_txt.add(decodeMe(lines.get(0).substring(0, pos)))
-      String[] parts = lines.get(0).substring(pos).split("&")
+    int pos = lines.get(0).indexOf("params={")
+    doc.trace_txt.addAll(decodeMe(lines));
+    if (pos >= 0) {
+      String line = lines.get(0).substring(pos + "params={".length());
+      int braceCount = 1;
+      int idx = 0;
+      for (; idx < line.length() && braceCount > 0; ++idx) {
+        char c = line.charAt(idx);
+        if (c == '{') {
+          ++braceCount
+        }
+        if (c == '}') {
+          --braceCount;
+        }
+      }
+      line = line.substring(0, idx - 1);
+      String[] parts = line.split("&")
       for (String part : parts) {
         if (part.trim().length() > 0) {
-          doc.trace_txt.add(decodeMe(part))
+          doc.qparams_ss.add(decodeMe(part))
         }
         int qPos = part.indexOf("q=")
         if (qPos >= 0) {
           String qPart = decodeMe(part.substring(qPos + 2))
           int ampPos = qPart.indexOf('&')
           if (ampPos > 0) {
-            doc.query_s = qPart.substring(0, ampPos)
+            doc.query_len_i = qPart.substring(0, ampPos).length()
+            doc.query_s = checkString(qPart.substring(0, ampPos))
           } else {
-            doc.query_s = qPart
+            doc.query_len_i = qPart.length()
+            doc.query_s = checkString(qPart)
           }
+        }
+        if (part.contains("sort") | part.contains("facet") || part.contains("group")) {
+          doc.dv_field_s = decodeMe(part);
         }
       }
     }
     for (String level : cfg.levels) {
       if (lines.get(0).contains(level)) {
-        doc.tags_ss.add(decodeMe(level.trim().replaceAll("\"", "'")))
+        doc.tags_ss.add(checkString(decodeMe(level.trim().replaceAll("\"", "'"))))
       }
     }
     Matcher m = cfg.qtimePat.matcher(lines.get(0))
@@ -365,7 +343,7 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
 
     m = cfg.handlerPat.matcher(lines.get(0))
     if (m.find()) {
-      doc.handler_s = m.group(1)
+      doc.handler_s = checkString(m.group(1))
     }
     m = cfg.rowsPat.matcher(lines.get(0))
     if (m.find()) {
@@ -382,15 +360,15 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
     m = cfg.corePat.matcher(lines.get(0))
     if (m.find()) {
       if (m.group(1).endsWith(",")) { // hacky!
-        doc.core_s = m.group(1).substring(0, m.group(1).length() - 1)
+        doc.core_s = checkString(m.group(1).substring(0, m.group(1).length() - 1))
       } else {
-        doc.core_s = m.group(1)
+        doc.core_s = checkString(m.group(1))
       }
     }
     for (Pattern pat : cfg.collectionPat) {
       m = pat.matcher(lines.get(0))
       if (m.find()) {
-        doc.collection_s = m.group(1)
+        doc.collection_s = checkString(m.group(1))
         break;
       }
     }
@@ -420,15 +398,17 @@ class SolrLogIndexer extends SolrSupportIndexerBase {
       Matcher m = pat.matcher(line)
       if (m.find()) {
         thingy.add(line)
-        getException(thingy, br)
+        getThingy(thingy, br)
         return LINE_TYPE.EXCEPTION
       }
     }
+    // There are multi-line log lines, in particular ones that have cluster states.
     thingy.add(line.trim())
+    getThingy(thingy, br)
     return LINE_TYPE.LOGLINE
   }
 
-  void getException(List<String> oneException, BufferedReader br) throws IOException {
+  void getThingy(List<String> oneException, BufferedReader br) throws IOException {
     if (hitEOL) {
       return
     }
@@ -522,7 +502,7 @@ class SolrThreadIndexer extends SolrSupportIndexerBase {
 
   void outputThread(String state, List<String> thread) throws IOException {
     SolrDoc doc = new SolrDoc(getBatch(), curFile.getName(), docCount);
-    doc.batch_s = getBatch();
+    doc.batch_s = checkString(getBatch())
     // Add any regex patterns specified in addition to any wait objects
     doc.trace_txt.addAll(thread)
     doc.state_s = state
@@ -532,7 +512,7 @@ class SolrThreadIndexer extends SolrSupportIndexerBase {
         for (Pattern pat : cfg.threadStop) {
           m = pat.matcher(line)
           if (m.find()) { // bucket at this line
-            doc.bucket_s = line.trim()
+            doc.bucket_s = checkString(line.trim())
             break
           }
         }
@@ -540,13 +520,14 @@ class SolrThreadIndexer extends SolrSupportIndexerBase {
       for (Pattern pat : cfg.tagsToFind) {
         m = pat.matcher(line)
         if (m.find()) {
-          doc.tags_ss.add(m.group(1) + "_" + pat.toString().replaceAll("\"", "'"))
+          doc.tags_ss.add(checkString(m.group(1) + "_" + pat.toString().replaceAll("\"", "'")))
         }
       }
     }
     addDoc(doc)
   }
 }
+
 // Just a serializable object to make writing JSON much easier. The
 // int values are defs so the nifty "do not print if null" bits of
 // serializing this object to JSON work without any extra effort.
@@ -567,6 +548,9 @@ class SolrDoc {
   String file_s
   String batch_s
   String query_s
+  int query_len_i
+  String dv_field_s
+  List<String> qparams_ss = new ArrayList<>();
 
   SolrDoc(String batch, String file, int docCount) {
     this.id = batch + "_" + docCount
