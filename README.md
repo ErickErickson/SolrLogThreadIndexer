@@ -45,13 +45,9 @@ My testing was done with Solr 8.2. There are no a-priori reasons it wouldn't wor
 ## Enhancements
 There are about a zillion things that might be done here. If it has enough functionality in its current form, we can put in the effort. I wanted to get something running quickly to see if it has possibilities. Then we might make it maximally useful. Some ideas:
 
-* Make it a hosted Fusion site.
-  * Allow us to upload files to it and keep it permanently running. Drag/drop would be cool! Or a datasource. Or...
-  * Stop using an external indexing program. Take what the current one does and make Fusion do its tricks.
-  * Allow customers to use it and/or embed something similar in Fusion.
+* Make it a package
+  * Joel Bernstein has just put some ability to use Streaming Expressions to index log files, add this?
 * Speed it up. Currently it's single threaded for instance. The heavy use of regexes can be slow. That said, so far it's fast enough for the samples I've ued so far.
-* Embed it in Fusion in the hope that clients can run it themselves and/or we can do screen shares and resolve support cases faster.
-* Have Fusion be able to go out and collect log files and do this automatically (well, on demand instead probably)
-* Decide that Splunk or ES can already do this for us and abandon it.
+* Have Solr be able to go out and collect log files and do this automatically (well, on demand instead probably)
 
 Please let me know if you have any questions.
